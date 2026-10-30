@@ -1,0 +1,87 @@
+--[[
+  Draws the interface (see modules/ui/hud.lua) and handles all input. Keys
+  that move the player are passed on to modules/input_state.lua.
+]]
+local ui = require "modules.ui.ui"
+local hud = require "modules.ui.hud"
+local ui_bridge = require "modules.state.ui_bridge"
+local input_state = require "modules.input_state"
+local constants = require "modules.constants"
+
+local KEYS = {
+	[hash("key_w")] = "w",
+	[hash("key_a")] = "a",
+	[hash("key_s")] = "s",
+	[hash("key_d")] = "d",
+	[hash("key_e")] = "e",
+	[hash("key_enter")] = "enter",
+	[hash("key_escape")] = "escape",
+	[hash("key_up")] = "up",
+	[hash("key_down")] = "down",
+	[hash("key_left")] = "left",
+	[hash("key_right")] = "right",
+	[hash("key_backspace")] = "backspace",
+}
+
+local CLICK = hash("click")
+local RIGHT_CLICK = hash("right_click")
+local TEXT = hash("text")
+
+-- keys that can be held down to repeat
+local REPEATS = { up = true, down = true, w = true, s = true, backspace = true }
+
+function init(self)
+	msg.post(".", "acquire_input_focus")
+	self.version = nil
+end
+
+function update(self, dt)
+	ui.update(dt)
+	hud.update(dt)
+
+	if ui.dirty or self.version ~= ui_bridge.version then
+		self.version = ui_bridge.version
+		ui.begin()
+		hud.draw()
+		ui.finish()
+	end
+end
+
+function on_input(self, action_id, action)
+	local x, y = action.x, action.y and constants.SCREEN_HEIGHT - action.y
+
+	if action_id == nil then
+		ui.mouse("move", x, y)
+		return false
+	end
+
+	local key = KEYS[action_id]
+	if key then
+		-- movement keys are always tracked, as in the browser version
+		input_state.on_key(key, action.pressed, action.released)
+
+		if action.pressed or (action.repeated and REPEATS[key]) then
+			return ui.key_pressed(key)
+		end
+		return false
+	end
+
+	if action_id == CLICK then
+		if action.pressed then
+			return ui.click(x, y)
+		elseif action.released then
+			ui.mouse("release", x, y)
+		end
+		return false
+	end
+
+	if action_id == RIGHT_CLICK and action.pressed then
+		return ui.right_click(x, y)
+	end
+
+	if action_id == TEXT then
+		return ui.text_input(action.text)
+	end
+
+	return false
+end

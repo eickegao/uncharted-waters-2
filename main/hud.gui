@@ -1,0 +1,50 @@
+script: "/main/hud.gui_script"
+fonts {
+  name: "r14"
+  font: "/assets/fonts/r14.font"
+}
+fonts {
+  name: "r16"
+  font: "/assets/fonts/r16.font"
+}
+fonts {
+  name: "r18"
+  font: "/assets/fonts/r18.font"
+}
+fonts {
+  name: "r20"
+  font: "/assets/fonts/r20.font"
+}
+fonts {
+  name: "r24"
+  font: "/assets/fonts/r24.font"
+}
+fonts {
+  name: "r36"
+  font: "/assets/fonts/r36.font"
+}
+fonts {
+  name: "b18"
+  font: "/assets/fonts/b18.font"
+}
+fonts {
+  name: "b24"
+  font: "/assets/fonts/b24.font"
+}
+fonts {
+  name: "b36"
+  font: "/assets/fonts/b36.font"
+}
+textures {
+  name: "ui"
+  texture: "/assets/ui/ui.atlas"
+}
+background_color {
+  x: 0.0
+  y: 0.0
+  z: 0.0
+  w: 0.0
+}
+material: "/builtins/materials/gui.material"
+adjust_reference: ADJUST_REFERENCE_PARENT
+max_nodes: 4096

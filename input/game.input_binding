@@ -1,0 +1,64 @@
+key_trigger {
+  input: KEY_W
+  action: "key_w"
+}
+key_trigger {
+  input: KEY_A
+  action: "key_a"
+}
+key_trigger {
+  input: KEY_S
+  action: "key_s"
+}
+key_trigger {
+  input: KEY_D
+  action: "key_d"
+}
+key_trigger {
+  input: KEY_E
+  action: "key_e"
+}
+key_trigger {
+  input: KEY_ENTER
+  action: "key_enter"
+}
+key_trigger {
+  input: KEY_KP_ENTER
+  action: "key_enter"
+}
+key_trigger {
+  input: KEY_ESC
+  action: "key_escape"
+}
+key_trigger {
+  input: KEY_UP
+  action: "key_up"
+}
+key_trigger {
+  input: KEY_DOWN
+  action: "key_down"
+}
+key_trigger {
+  input: KEY_LEFT
+  action: "key_left"
+}
+key_trigger {
+  input: KEY_RIGHT
+  action: "key_right"
+}
+key_trigger {
+  input: KEY_BACKSPACE
+  action: "key_backspace"
+}
+mouse_trigger {
+  input: MOUSE_BUTTON_LEFT
+  action: "click"
+}
+mouse_trigger {
+  input: MOUSE_BUTTON_RIGHT
+  action: "right_click"
+}
+text_trigger {
+  input: TEXT
+  action: "text"
+}

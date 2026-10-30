@@ -1,0 +1,2 @@
+prototype: "/main/person.go"
+load_dynamically: false

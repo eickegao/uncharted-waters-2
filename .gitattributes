@@ -7,3 +7,6 @@
 
 # README images are small; keep them as regular files so they render everywhere, forks included
 .github/readme/** -filter -diff -merge -text
+
+# Interface images sliced by tools/slice_ui_images.py are small; keep them out of LFS
+assets/ui/*.png -filter -diff -merge -text

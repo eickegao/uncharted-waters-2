@@ -1,0 +1,2 @@
+prototype: "/main/ship.go"
+load_dynamically: false

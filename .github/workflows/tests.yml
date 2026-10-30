@@ -1,34 +1,33 @@
-name: 'Tests'
+name: tests
+
 on:
   push:
-  workflow_dispatch:
+    branches: [main]
+  pull_request:
 
 jobs:
-  tests:
-    runs-on: 'ubuntu-latest'
+  unit:
+    runs-on: ubuntu-latest
     steps:
-      - uses: 'actions/checkout@v5'
+      - uses: actions/checkout@v4
+      - name: Install LuaJIT
+        run: sudo apt-get update && sudo apt-get install -y luajit
+      - name: Run tests
+        run: luajit tests/run.lua
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
         with:
           lfs: true
-
-      # reads the pnpm version from packageManager in package.json
-      - uses: 'pnpm/action-setup@v6'
-
-      - uses: 'actions/setup-node@v7'
+      - uses: actions/setup-java@v4
         with:
-          node-version-file: 'package.json'
-          cache: 'pnpm'
-
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm lint
-      - run: pnpm typecheck
-      - run: pnpm vitest run
-      - run: pnpm exec playwright install --with-deps
-      - run: pnpm exec playwright test
-
-      - uses: 'actions/upload-artifact@v4'
-        if: ${{ failure() }}
-        with:
-          name: playwright-results
-          path: tests/results/
-          retention-days: 7
+          distribution: temurin
+          java-version: '25'
+      - name: Download bob.jar
+        run: |
+          SHA1=$(curl -s https://d.defold.com/stable/info.json | jq -r .sha1)
+          curl -sSL -o bob.jar "https://d.defold.com/archive/stable/${SHA1}/bob/bob.jar"
+      - name: Build
+        run: java -jar bob.jar --platform x86_64-linux --verbose build

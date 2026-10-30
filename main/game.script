@@ -1,0 +1,172 @@
+--[[
+  The game loop: updates the port or the world map, and renders the visible
+  part of the map into a tilemap with the characters as sprites on top.
+]]
+local state = require "modules.state.state"
+local ui_bridge = require "modules.state.ui_bridge"
+local actions_port = require "modules.state.actions_port"
+local actions_world = require "modules.state.actions_world"
+local input_state = require "modules.input_state"
+local create_world = require "modules.world.world"
+local create_port = require "modules.port.port"
+local sound_track = require "modules.sound_track"
+local constants = require "modules.constants"
+
+-- the tilemaps are one tile larger than the camera, so they can be offset by part of a tile
+local MAP_COLUMNS = 41
+local MAP_ROWS = 26
+local SCALE = 2
+local SPRITE_SIZE = 64
+
+local function set_visible(url, visible)
+	msg.post(url, visible and "enable" or "disable")
+end
+
+local function show_scene(self, scene)
+	if self.scene == scene then
+		return
+	end
+	self.scene = scene
+	set_visible("/map#world", scene == "world")
+	set_visible("/map#port", scene == "port")
+	self.drawn_map = nil
+end
+
+local function draw_map(self, view)
+	local tilemap_url = view.map.is_port and "/map#port" or "/map#world"
+	local base_x = math.floor(view.camera.x)
+	local base_y = math.floor(view.camera.y)
+	local tileset_offset = view.map.get_tileset_offset(view.time_of_day)
+
+	local drawn = self.drawn_map
+	if not drawn or drawn.map ~= view.map or drawn.x ~= base_x or drawn.y ~= base_y or drawn.offset ~= tileset_offset then
+		local tiles = view.map.tiles
+		local row_start = tileset_offset * view.map.tileset_columns + 1
+		for j = 0, MAP_ROWS - 1 do
+			for i = 0, MAP_COLUMNS - 1 do
+				tilemap.set_tile(tilemap_url, "layer1", i + 1, MAP_ROWS - j, row_start + tiles(base_x + i, base_y + j))
+			end
+		end
+		self.drawn_map = { map = view.map, x = base_x, y = base_y, offset = tileset_offset }
+	end
+
+	local offset_x = math.floor((view.camera.x % 1) * constants.TILE_SIZE)
+	local offset_y = math.floor((view.camera.y % 1) * constants.TILE_SIZE)
+	go.set_position(
+		vmath.vector3(
+			constants.CAMERA_X - offset_x,
+			constants.CAMERA_HEIGHT + offset_y - MAP_ROWS * constants.TILE_SIZE,
+			0
+		),
+		"/map"
+	)
+end
+
+local function clear_sprites(self)
+	for _, entry in ipairs(self.sprites) do
+		go.delete(entry.id)
+	end
+	self.sprites = {}
+end
+
+local function draw_sprites(self, view, kind)
+	if self.sprite_kind ~= kind then
+		clear_sprites(self)
+		self.sprite_kind = kind
+	end
+
+	local factory_url = kind == "ship" and "#ship_factory" or "#person_factory"
+
+	for i, s in ipairs(view.sprites) do
+		local entry = self.sprites[i]
+		if not entry then
+			entry = { id = factory.create(factory_url, nil, nil, nil, SCALE) }
+			entry.url = msg.url(nil, entry.id, "sprite")
+			self.sprites[i] = entry
+		end
+
+		-- later sprites are drawn on top
+		go.set_position(
+			vmath.vector3(
+				constants.CAMERA_X + s.x + SPRITE_SIZE / 2,
+				constants.CAMERA_HEIGHT - s.y - SPRITE_SIZE / 2,
+				0.1 + i * 0.001
+			),
+			entry.id
+		)
+
+		if entry.frame ~= s.frame then
+			entry.frame = s.frame
+			sprite.play_flipbook(entry.url, "f" .. s.frame)
+		end
+	end
+
+	for i = #self.sprites, #view.sprites + 1, -1 do
+		go.delete(self.sprites[i].id)
+		self.sprites[i] = nil
+	end
+end
+
+local function update_music(self)
+	local general = ui_bridge.general
+	local track = sound_track.get_track(general.port_id, general.building_id)
+
+	-- the same track continues when, e.g., entering a building that shares it
+	if track ~= self.track then
+		if self.track then
+			sound.stop("/music#" .. self.track)
+		end
+		self.track = track
+		sound.play("/music#" .. track)
+	end
+
+	if ui_bridge.sound_on ~= self.sound_on then
+		self.sound_on = ui_bridge.sound_on
+		sound.set_group_gain("master", self.sound_on and 1 or 0)
+	end
+end
+
+function init(self)
+	math.randomseed(os.time())
+
+	self.sprites = {}
+	self.sprite_kind = nil
+	self.scene = nil
+	self.track = nil
+	self.sound_on = nil
+
+	actions_port.update_general()
+	actions_world.set_docked_fleet_positions()
+end
+
+function update(self, dt)
+	input_state.update(dt)
+
+	if state.port_id ~= nil then
+		if not state.port then
+			state.port = create_port(state.port_id)
+		end
+
+		if state.building_id == nil then
+			state.port.update(dt)
+			show_scene(self, "port")
+			local view = state.port.view()
+			draw_map(self, view)
+			draw_sprites(self, view, "person")
+		end
+	end
+
+	if state.port_id == nil then
+		if not state.world then
+			state.world = create_world()
+		end
+
+		state.world.update(dt)
+		show_scene(self, "world")
+		local view = state.world.view()
+		draw_map(self, view)
+		draw_sprites(self, view, "ship")
+	end
+
+	update_music(self)
+end

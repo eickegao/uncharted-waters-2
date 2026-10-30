@@ -1,0 +1,4 @@
+tile_set: "/assets/images/port_characters.tilesource"
+default_animation: "f0"
+material: "/builtins/materials/sprite.material"
+blend_mode: BLEND_MODE_ALPHA

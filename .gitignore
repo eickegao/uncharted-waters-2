@@ -1,6 +1,12 @@
 .idea/
 .DS_Store
-node_modules/
-build/
-tests/results/
-playwright-report/
+
+# Defold
+/.internal
+/build
+/bundle
+/.externalToolBuilders
+/.editor_settings
+*.der
+manifest.private.der
+manifest.public.der
