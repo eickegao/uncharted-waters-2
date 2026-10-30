@@ -45,7 +45,9 @@ To build from the command line, use
 [bob.jar](https://defold.com/manuals/bob/):
 
 ```sh
-java -jar bob.jar --platform x86_64-linux build
+# HTML5: open bundle/Uncharted Waters 2/index.html through a web server
+java -jar bob.jar --platform js-web --architectures wasm-web --archive \
+  --bundle-output bundle resolve build bundle
 ```
 
 HTML5, Windows, macOS and Linux bundles are made through

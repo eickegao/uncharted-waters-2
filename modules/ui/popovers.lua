@@ -13,7 +13,7 @@ local M = {}
 
 local function mates(x, y)
 	local list = selectors.get_mates()
-	local w, h = 280 + 640, 680
+	local w, h = 280 + 640, 720
 	local cx, cy = widgets.message_box(x, y, w + 32, h + 32)
 
 	local selected = widgets.menu("mates", cx, cy, 280, utils.map(list, function(mate, i)
@@ -120,7 +120,7 @@ local function items(x, y)
 end
 
 M.list = {
-	{ label = "Mates", draw = mates, height = 712 },
+	{ label = "Mates", draw = mates, height = 752 },
 	{ label = "Fleet", draw = fleet, height = 640 },
 	{ label = "Items", draw = items, height = 336 },
 }

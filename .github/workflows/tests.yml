@@ -29,5 +29,5 @@ jobs:
         run: |
           SHA1=$(curl -s https://d.defold.com/stable/info.json | jq -r .sha1)
           curl -sSL -o bob.jar "https://d.defold.com/archive/stable/${SHA1}/bob/bob.jar"
-      - name: Build
-        run: java -jar bob.jar --platform x86_64-linux --verbose build
+      - name: Build HTML5 bundle
+        run: java -jar bob.jar --platform js-web --architectures wasm-web --archive --bundle-output bundle resolve build bundle
